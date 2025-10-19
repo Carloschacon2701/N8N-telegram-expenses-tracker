@@ -1,0 +1,862 @@
+{
+  "createdAt": "2025-07-26T17:37:35.216Z",
+  "updatedAt": "2025-08-11T23:35:24.000Z",
+  "id": "NgGFMSeLBHPjIY7C",
+  "name": "Telegram Bot",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": { "updates": ["message"], "additionalFields": {} },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [-320, -20],
+      "id": "d4a10f4c-caac-488b-a55e-a5f1e23e32f2",
+      "name": "Telegram Trigger",
+      "webhookId": "7d946f7c-ad8f-42cb-b449-fd948a84c13b",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expense registration assistant. Your only tasks are:\n\nExtract expense registration information from user messages and return it as JSON.\n\nRecognize if the user is asking for a summary of expenses and return the keyword \"SUMMARY_REQUEST\".\n\nIf the user sends the /welcome command, reply with only this keyword: \"GREETING\"\n\nIf the user registers an expense (for example: \"I spent $10 at the grocery store using my credit card\"), you must return a JSON object in the following format:\n{ \"amount\": number, \"description\": string, \"payment_method\": string }\n\namount: Number only, no currency symbols.\n\ndescription: What the purchase was (e.g., Grocery store, Restaurant, Pharmacy, etc.).\n\npayment_method: How they paid (e.g., cash, debit_card, credit_card, bank_transfer, etc.).\n\nIf the message is asking for a summary or report of expenses (for example, \"Give me the monthly expenses summary\", \"Show my expenses\", \"Send me my report\"), reply with only this keyword:\n\"SUMMARY_REQUEST\"\n\nIf the message is /start, reply ONLY with the greeting above.\n\nIf the message is not about registering an expense, requesting a summary, or starting the bot, reply with:\n\"INVALID_MESSAGE\"\n\nAlways return only the JSON object, the keyword, the greeting, or the instruction message. Never add explanations or extra text.\n\nIf there are ambiguities, guess the most likely values.\n\nThis is the human message: {{ $json.message }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [380, 20],
+      "id": "42ecc493-1d30-4a49-985c-1d65be56a876",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4o-mini" },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [340, 220],
+      "id": "2a12452a-86ea-4e2a-94ec-2fa9d4416ada",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": { "id": "6lnT8261265B7uFt", "name": "OpenAi account" }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d426843b-6cb1-4d93-94de-e2f74b7ebf24",
+                    "leftValue": "={{ $json.invalid }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invalid"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fdbcbe90-181c-4f78-8149-9faeb6c63321",
+                    "leftValue": "={{ $json.register }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "register"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "61979278-c071-482e-a3cc-1847019d0d74",
+                    "leftValue": "={{ $json.summary }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "summary"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4361694b-cd3c-411c-b520-763058e1ac30",
+                    "leftValue": "={{ $json.greeting }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "greeting"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [880, 0],
+      "id": "1f465e7f-5c1f-4cb2-a15d-d64361098a46",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const outputString = $('AI Agent').first().json.output\n\nlet data;\ntry {\n  data = JSON.parse(outputString);\n} catch (e) {\n  // handle invalid JSON, e.g., return an error\n  data = {error: \"Invalid JSON returned by AI model\", raw: outputString};\n}\n\nreturn [ { json: data } ];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -40],
+      "id": "9259c833-6d25-47c6-a528-a8585d914f66",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "=expenses_{{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "limit": 1,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1300, -40],
+      "id": "78ffd7fe-1a46-4f6d-afc9-3ac0fcf5f256",
+      "name": "Google Drive",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wMNI21Q6KFZuibKd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const exists = Boolean($input.first().json.id);\nreturn [{ json: { exists } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, -40],
+      "id": "4f8dac83-afbe-41e6-9fdb-a6d773e5c181",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50df8937-1e67-4033-8905-4823a23c7e0d",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1740, -40],
+      "id": "af0b28a7-5bf7-42a0-8945-288975e548c5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Google Drive').item.json.id || $('Google Drive1').item.json.id  }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172zO9rEAe1oMZgz5Laoow2r-9UayBEdvIcBX1_0AgzU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AMOUNT": "={{ $('Code').item.json.amount }}",
+            "DESCRIPTION": "={{ $('Code').item.json.description }}",
+            "PAYMENT_METHOD": "={{ $('Code').item.json.payment_method }}",
+            "DATE": "={{ $now.format('dd-MM-yyyy') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "AMOUNT",
+              "displayName": "AMOUNT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DESCRIPTION",
+              "displayName": "DESCRIPTION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PAYMENT_METHOD",
+              "displayName": "PAYMENT_METHOD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2120, -40],
+      "id": "c8f90558-ea40-407e-82d9-de2510dd1ef1",
+      "name": "Google Sheets",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pfPFX74AS3kygdPr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1yJsXhH1zcJbukKz98EFRRJgSm-zSkRZ9nglXqxGBAt4",
+          "mode": "list",
+          "cachedResultName": "expenses_template",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yJsXhH1zcJbukKz98EFRRJgSm-zSkRZ9nglXqxGBAt4/edit?usp=drivesdk"
+        },
+        "name": "=expenses_{{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1960, 80],
+      "id": "650edcdb-6c09-48fa-b64c-93dce04c9dd7",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wMNI21Q6KFZuibKd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Expense succesfully saved!!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2340, -40],
+      "id": "361e8703-7f22-46b9-a69e-f1f3d9bf5b5a",
+      "name": "Telegram1",
+      "webhookId": "ee960138-388e-4f51-ae9f-194920d0bdb9",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "353ae397-12ec-4c66-be02-729d0fef49df",
+              "leftValue": "={{ $json.message.voice.file_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-120, 0],
+      "id": "df2b2e4d-1e76-4fc3-8242-309f3b9614a8",
+      "name": "Check is Audio"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [20, -180],
+      "id": "6d2163f1-da56-484d-a037-85e5d4159078",
+      "name": "get audio",
+      "webhookId": "e23415e6-981c-4487-b889-22328c0ad71a",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let values = {\n  invalid: false,\n  summary: false,\n  register: false,\n  greeting: false\n};\n\nconst output = $input.first().json.output\n\nif(output.includes(\"GREETING\")){\n  values.greeting = true;\n  return values;\n}\n\nif(output.includes(\"INVALID_MESSAGE\")){\n  values.invalid = true;\n  return values;\n};\n\nif(output.includes(\"SUMMARY_REQUEST\")){\n  values.summary = true;\n  return values;\n}\n\nvalues.register = true;\n\nreturn values\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 20],
+      "id": "e6754db9-5b17-4e25-b8a3-084c583ee754",
+      "name": "parse_path"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "=expenses_{{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "limit": 1,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1040, 320],
+      "id": "fafaa00a-16c2-4ba6-bdc7-1b3252b1e239",
+      "name": "Check existing file",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wMNI21Q6KFZuibKd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const exists = Boolean($input.first().json.id);\nreturn [{ json: { exists } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 380],
+      "id": "1905312f-984f-4bf5-9b5f-bfebf46d14e8",
+      "name": "Verify if exists"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50df8937-1e67-4033-8905-4823a23c7e0d",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1440, 480],
+      "id": "3f2043af-539c-459a-926a-59d0ce1ccdd5",
+      "name": "file exists?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Oh no, you don't have any expenses registered, please save some and  try again later!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1860, 600],
+      "id": "378e09de-a250-4638-8546-3b066272cda9",
+      "name": "no file found",
+      "webhookId": "f2dad0e9-52dc-4f78-97ff-a51b1c88d735",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Check existing file').first().json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "sheetsToFormat": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2440, 360],
+      "id": "94bb19b4-b049-4b6f-9293-335c4ee0f69e",
+      "name": "get file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wMNI21Q6KFZuibKd",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": { "fileName": "expenses.xlsx" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2720, 360],
+      "id": "698a32b4-4f68-4f46-9fcf-df58fc637bb1",
+      "name": "return doc",
+      "webhookId": "8773053e-610b-4ce7-9c08-67e8ba7ac48b",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Hello! I’m your expense assistant. Send me your spending details, and I’ll organize them, track payment methods, and give you quick summaries whenever you ask. Let’s manage your expenses together!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, 140],
+      "id": "c33a75eb-ebba-4fd8-bafc-9ce9a75363f0",
+      "name": "Greetings",
+      "webhookId": "1a8d9d95-1d15-4318-aac8-c5d8057793a1",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Please register an expense to continue. For example: 'I spent 15 dollars at the pharmacy with my debit card.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1060, -240],
+      "id": "12467052-9dfe-4179-a355-f22a88e11b51",
+      "name": "Invalid message",
+      "webhookId": "c3bcc53c-ebc6-45f5-9b61-4a3c23a9202a",
+      "credentials": {
+        "telegramApi": {
+          "id": "2a6ESOn3OxjhICcE",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [240, -220],
+      "id": "b9b358de-6c7f-476f-8f1a-8e6ca794310c",
+      "name": "Transcribe audio",
+      "credentials": {
+        "openAiApi": { "id": "wdag8nujm2WkZd3L", "name": "OpenAi account 2" }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5d6860f5-6bc8-4286-b5ab-bbd7343d18eb",
+              "name": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text || $('Transcribe audio').item.json.text}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [160, 20],
+      "id": "418c3ec2-7ff9-4797-976e-866f6a931094",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Check existing file').item.json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172zO9rEAe1oMZgz5Laoow2r-9UayBEdvIcBX1_0AgzU/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1660, 380],
+      "id": "0a2e72a9-dd43-46cb-bbe7-cec16120d467",
+      "name": "get rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pfPFX74AS3kygdPr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $(\"get rows\").all().map(item => item.json);\nconst today = new Date();\nconst currentMonth = today.getMonth();\nconst currentYear = today.getFullYear();\nconst HEADER_LENGTH = 1\n\nlet total = 0;\n\nrows.forEach(row => {\n  if (row[\"DATE\"]) {\n    // Parse DD-MM-YYYY format manually\n    const [day, month, year] = row[\"DATE\"].split('-').map(Number);\n    const d = new Date(year, month - 1, day); // JS months are 0-based\n    if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {\n      total += Number(row[\"AMOUNT\"]) || 0;\n    }\n  } else {\n    // If you have no date column, sum all\n    total += Number(row[\"AMOUNT\"]) || 0;\n  }\n});\n\nreturn [\n  {\n    json: {\n      amount: total,\n      payment_method: '',\n      description: 'TOTAL',\n      rows_length: rows.length + HEADER_LENGTH\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 380],
+      "id": "32ba7a45-c478-4717-aa6c-f86fa95cf874",
+      "name": "getTotal"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Check existing file').first().json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172zO9rEAe1oMZgz5Laoow2r-9UayBEdvIcBX1_0AgzU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AMOUNT": "={{ $json.amount }}",
+            "DESCRIPTION": "={{ $json.description }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "AMOUNT",
+              "displayName": "AMOUNT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DESCRIPTION",
+              "displayName": "DESCRIPTION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PAYMENT_METHOD",
+              "displayName": "PAYMENT_METHOD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DATE",
+              "displayName": "DATE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2160, 380],
+      "id": "c6f7a596-c85f-49bf-8436-59b33833239e",
+      "name": "Append total",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pfPFX74AS3kygdPr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Check existing file').first().json.id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/172zO9rEAe1oMZgz5Laoow2r-9UayBEdvIcBX1_0AgzU/edit#gid=0"
+        },
+        "startIndex": "={{ $('getTotal').item.json.rows_length + 1 }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2940, 360],
+      "id": "9870cc4a-2994-4abb-b716-774dd83f6fd0",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pfPFX74AS3kygdPr",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Check is Audio", "type": "main", "index": 0 }]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "AI Agent": {
+      "main": [[{ "node": "parse_path", "type": "main", "index": 0 }]]
+    },
+    "Switch": {
+      "main": [
+        [{ "node": "Invalid message", "type": "main", "index": 0 }],
+        [{ "node": "Code", "type": "main", "index": 0 }],
+        [{ "node": "Check existing file", "type": "main", "index": 0 }],
+        [{ "node": "Greetings", "type": "main", "index": 0 }]
+      ]
+    },
+    "Code": {
+      "main": [[{ "node": "Google Drive", "type": "main", "index": 0 }]]
+    },
+    "Google Drive": {
+      "main": [[{ "node": "Code1", "type": "main", "index": 0 }]]
+    },
+    "Code1": { "main": [[{ "node": "If", "type": "main", "index": 0 }]] },
+    "If": {
+      "main": [
+        [{ "node": "Google Sheets", "type": "main", "index": 0 }],
+        [{ "node": "Google Drive1", "type": "main", "index": 0 }]
+      ]
+    },
+    "Google Drive1": {
+      "main": [[{ "node": "Google Sheets", "type": "main", "index": 0 }]]
+    },
+    "Google Sheets": {
+      "main": [[{ "node": "Telegram1", "type": "main", "index": 0 }]]
+    },
+    "Check is Audio": {
+      "main": [
+        [{ "node": "get audio", "type": "main", "index": 0 }],
+        [{ "node": "Edit Fields1", "type": "main", "index": 0 }]
+      ]
+    },
+    "parse_path": {
+      "main": [[{ "node": "Switch", "type": "main", "index": 0 }]]
+    },
+    "Check existing file": {
+      "main": [[{ "node": "Verify if exists", "type": "main", "index": 0 }]]
+    },
+    "Verify if exists": {
+      "main": [[{ "node": "file exists?", "type": "main", "index": 0 }]]
+    },
+    "file exists?": {
+      "main": [
+        [{ "node": "get rows", "type": "main", "index": 0 }],
+        [{ "node": "no file found", "type": "main", "index": 0 }]
+      ]
+    },
+    "get file": {
+      "main": [[{ "node": "return doc", "type": "main", "index": 0 }]]
+    },
+    "get audio": {
+      "main": [[{ "node": "Transcribe audio", "type": "main", "index": 0 }]]
+    },
+    "Transcribe audio": {
+      "main": [[{ "node": "Edit Fields1", "type": "main", "index": 0 }]]
+    },
+    "Edit Fields1": {
+      "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]]
+    },
+    "get rows": {
+      "main": [[{ "node": "getTotal", "type": "main", "index": 0 }]]
+    },
+    "getTotal": {
+      "main": [[{ "node": "Append total", "type": "main", "index": 0 }]]
+    },
+    "Append total": {
+      "main": [[{ "node": "get file", "type": "main", "index": 0 }]]
+    },
+    "return doc": {
+      "main": [[{ "node": "Google Sheets1", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "meta": { "templateCredsSetupCompleted": true },
+  "pinData": {},
+  "versionId": "5fe2906f-9327-4e8f-b1ce-425002bc3912",
+  "triggerCount": 1,
+  "tags": []
+}
